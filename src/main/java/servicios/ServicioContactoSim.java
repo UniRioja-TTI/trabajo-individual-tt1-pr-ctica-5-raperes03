@@ -31,8 +31,7 @@ public class ServicioContactoSim implements InterfazContactoSim {
     private final Logger logger;
     @Value("${SERVICIO_URL:http://servicio-consumible:8080}")
     private String servicioUrl;
-    private final SolicitudApi solicitudApi;
-    private final ResultadosApi resultadosApi;
+
 
     private final List<Entidad> entidades = new ArrayList<>();
     private final ConcurrentHashMap<Integer, DatosSolicitud> solicitudes = new ConcurrentHashMap<>();
@@ -42,17 +41,17 @@ public class ServicioContactoSim implements InterfazContactoSim {
 
     public ServicioContactoSim(Logger logger) {
         this.logger = logger;
-
-        // Configuro el cliente para conectarlo con la MV
-        // Uso localhost:8080 porque es el puerto redirigido (al 5000 de la VM)
-        ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath(servicioUrl);
-
-        this.solicitudApi = new SolicitudApi(apiClient);
-        this.resultadosApi = new ResultadosApi(apiClient);
-
         inicializarEntidades();
+    }
 
+    public ApiClient getClient(){
+        ApiClient apiClient = new ApiClient();
+        // si servicioUrl es null por error de Spring, uso el nombre del contenedor directamente
+        String base = (servicioUrl != null && !servicioUrl.contains("null"))
+                ? servicioUrl
+                : "http://servicio-consumible:8080";
+        apiClient.setBasePath(base);
+        return apiClient;
     }
 
     //Método que mencionaba para inventarme la lista
@@ -100,7 +99,9 @@ public class ServicioContactoSim implements InterfazContactoSim {
             solicitud.setNombreEntidades(nombres);
             solicitud.setCantidadesIniciales(cantidades);
 
-            SolicitudResponse resp = solicitudApi.solicitudSolicitarPost(usuario_cte, solicitud);
+            //Creo la api cuando se va a usar
+            SolicitudApi api = new SolicitudApi(getClient());
+            SolicitudResponse resp = api.solicitudSolicitarPost(usuario_cte, solicitud);
 
             if (resp.getDone() != null && resp.getDone()) {
                 return resp.getTokenSolicitud();
@@ -118,6 +119,8 @@ public class ServicioContactoSim implements InterfazContactoSim {
     @Override
     public DatosSimulation descargarDatos(int ticket) {
         DatosSimulation ds = new DatosSimulation();
+        SolicitudApi solicitudApi = new SolicitudApi(getClient());
+        ResultadosApi resultadosApi = new ResultadosApi(getClient());
         try {
             // Intentamos comprobar si está terminada
             try {
