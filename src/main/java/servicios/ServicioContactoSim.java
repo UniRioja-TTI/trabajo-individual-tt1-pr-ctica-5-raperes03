@@ -12,6 +12,7 @@ import org.openapitools.client.ApiException;
 import org.openapitools.client.model.Solicitud;
 import org.openapitools.client.model.SolicitudResponse;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import interfaces.InterfazContactoSim;
@@ -28,6 +29,8 @@ import org.openapitools.client.model.ResultsResponse;
 public class ServicioContactoSim implements InterfazContactoSim {
 
     private final Logger logger;
+    @Value("${SERVICIO_URL:http://localhost:8080}")
+    private String servicioUrl;
     private final SolicitudApi solicitudApi;
     private final ResultadosApi resultadosApi;
 
@@ -43,7 +46,7 @@ public class ServicioContactoSim implements InterfazContactoSim {
         // Configuro el cliente para conectarlo con la MV
         // Uso localhost:8080 porque es el puerto redirigido (al 5000 de la VM)
         ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath("http://localhost:8080");
+        apiClient.setBasePath(servicioUrl);
 
         this.solicitudApi = new SolicitudApi(apiClient);
         this.resultadosApi = new ResultadosApi(apiClient);
