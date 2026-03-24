@@ -29,7 +29,7 @@ import org.openapitools.client.model.ResultsResponse;
 public class ServicioContactoSim implements InterfazContactoSim {
 
     private final Logger logger;
-    @Value("${SERVICIO_URL:http://localhost:8080}")
+    @Value("${SERVICIO_URL:http://servicio-consumible:8080}")
     private String servicioUrl;
     private final SolicitudApi solicitudApi;
     private final ResultadosApi resultadosApi;
